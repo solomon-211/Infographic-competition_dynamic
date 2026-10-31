@@ -1,0 +1,1139 @@
+/* Falling Short: one long scroll story in five numbered chapters, each a chart you can play with.
+   NISR navy ground, survey-yellow for the children who fall short.
+   Single dark look on purpose, matching the printed poster. */
+
+/* Contents
+    1. Tokens
+    2. Base
+    3. Utilities
+    4. Controls (pills, segmented buttons, presets)
+    5. Header / hero
+    6. Chapter nav
+    7. Key findings
+    8. Chapters, cards, shared chart styles
+    9. Chapter 01: pace control
+   10. Chapter 03: map + ranking
+   11. Chapter 04: gaps
+   12. Chapter 05: actions
+   13. Footer
+   14. Responsive
+   15. Print
+*/
+
+/* ==========================================================================
+   1. Tokens
+   ========================================================================== */
+
+:root {
+  /* Surfaces */
+  --bg: #0f2f63;
+  --bg-deep: #0a224b;
+  --panel: #173f7a;
+  --line: #3d65a3;
+
+  /* Text */
+  --fg: #ffffff;
+  --muted: #c9dbf2;
+  --faint: #8fb0dc;
+
+  /* Accents */
+  --accent: #ffd84d;
+  --sky: #33abed;
+  --sky-soft: #5cc4f7;
+
+  /* Type */
+  --display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --figures: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;  /* big headline numbers */
+  --data: "Inter", "Segoe UI", system-ui, sans-serif;  /* numbers in charts and readouts */
+
+  /* Motion and layout */
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --nav-h: 62px;
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   2. Base
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 16;
+  background: var(--bg-deep);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  text-wrap: balance;
+  margin: 0;
+  line-height: 1.1;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+svg text {
+  font-family: var(--body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  * {
+    transition: none!important;
+    animation: none!important;
+  }
+}
+
+/* ==========================================================================
+   3. Utilities
+   ========================================================================== */
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.num {
+  font-family: var(--data);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.hint {
+  font-size: 14px;
+  color: var(--faint);
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -80px;
+  z-index: 40;
+  background: var(--accent);
+  color: var(--bg-deep);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip:focus {
+  top: 12px;
+}
+
+.noscript {
+  padding-block: 16px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   4. Controls (pills, segmented buttons, presets)
+   ========================================================================== */
+
+.pill,
+.seg button {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: background .2s, border-color .2s, color .2s;
+}
+
+.pill {
+  padding: 7px 14px;
+  font-size: 15px;
+}
+
+.seg button {
+  padding: 6px 13px;
+  font-size: 14px;
+}
+
+.pill:hover,
+.seg button:hover {
+  color: var(--fg);
+  border-color: var(--faint);
+}
+
+.pill[aria-pressed="true"],
+.pill[aria-selected="true"],
+.seg button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-deep);
+}
+
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+/* ==========================================================================
+   5. Header / hero
+   ========================================================================== */
+
+header {
+  background: var(--bg-deep);
+  border-bottom: 3px solid var(--accent);
+}
+
+header .wrap {
+  padding-block: 40px 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: clamp(17px, calc(2.7vw - 6px), 25px);  /* sized to keep the first line whole in the header column */
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--fg);
+  background: rgba(92, 196, 247, .16);
+  border: 1.5px solid var(--sky-soft);
+  border-radius: 16px;
+  padding: 12px 20px;
+}
+
+h1 {
+  font-size: clamp(48px, 8vw, 88px);
+  color: var(--accent);
+  margin-top: 10px;
+}
+
+.lede {
+  font-size: clamp(18px, 2.1vw, 22px);
+  margin-top: 16px;
+  max-width: 34em;
+}
+
+.lede b {
+  color: var(--accent);
+}
+
+.byline {
+  margin-top: 18px;
+  font-size: clamp(19px, 2.2vw, 23px);
+  color: var(--muted);
+}
+
+.byline b {
+  color: var(--accent);
+}
+
+.hero-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.hero-top {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.big {
+  font-family: var(--figures);
+  font-size: clamp(76px, 10.5vw, 116px);
+  font-weight: 800;
+  line-height: .9;
+  letter-spacing: -.01em;
+}
+
+.big-cap {
+  color: var(--muted);
+  font-size: 17px;
+  max-width: 16em;
+}
+
+.kids {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 4px;
+  margin: 18px 0 14px;
+}
+
+.kid {
+  aspect-ratio: 1/1.6;
+  max-width: 100%;
+}
+
+.kid svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kid path {
+  fill: #5677ad;
+  transition: fill .35s ease var(--d, 0ms);
+}
+
+.kid.on path {
+  fill: var(--accent);
+}
+
+.hero-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* ==========================================================================
+   6. Chapter nav
+   ========================================================================== */
+
+.chnav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 15;
+  background: rgba(10, 34, 75, .94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.chnav .wrap {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-block: 10px;
+  scrollbar-width: none;
+}
+
+.chnav .wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.chnav a {
+  flex: none;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: background .2s, color .2s;
+}
+
+.chnav a span {
+  color: var(--sky-soft);
+  margin-right: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chnav a:hover {
+  color: var(--fg);
+  border-color: var(--line);
+}
+
+.chnav a.on {
+  background: var(--accent);
+  color: var(--bg-deep);
+}
+
+.chnav a.on span {
+  color: var(--bg-deep);
+}
+
+/* ==========================================================================
+   7. Key findings
+   ========================================================================== */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding-block: 28px;
+}
+
+.fact {
+  padding: 4px 0;
+}
+
+.fact .n {
+  font-family: var(--figures);
+  font-size: 56px;
+  font-weight: 800;
+  line-height: .95;
+  color: var(--fg);
+}
+
+.fact p {
+  color: var(--muted);
+  margin-top: 6px;
+  font-size: 16px;
+}
+
+/* ==========================================================================
+   8. Chapters, cards, shared chart styles
+   ========================================================================== */
+
+section.ch {
+  padding-block: 44px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: var(--nav-h);
+}
+
+.ch-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 18px;
+  align-items: baseline;
+  margin-bottom: 22px;
+}
+
+.ch-no {
+  font-family: var(--figures);
+  font-size: 26px;
+  color: var(--sky-soft);
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+}
+
+h2 {
+  font-size: clamp(30px, 4vw, 42px);
+  color: var(--accent);
+}
+
+.ch-head p {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 18px;
+  max-width: 46em;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.chart-label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.chart-label .count {
+  color: var(--faint);
+  letter-spacing: .02em;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.axis {
+  fill: var(--muted);
+  font-size: 15px;
+}
+
+.axis.sm {
+  font-size: 13px;
+}
+
+.vlabel {
+  fill: var(--fg);
+  font-family: var(--data);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.num-label {
+  font-family: var(--data);
+  font-variant-numeric: tabular-nums;
+}
+
+.ref-label {
+  fill: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.chart-hint {
+  margin-top: 8px;
+}
+
+/* tooltip */
+.tip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  background: var(--fg);
+  color: var(--bg-deep);
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.35;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  z-index: 20;
+  max-width: 240px;
+  opacity: 0;
+  transition: opacity .12s;
+}
+
+.tip.show {
+  opacity: 1;
+}
+
+.tip b {
+  font-size: 16px;
+}
+
+/* reveal-on-scroll: JS adds .pending until the chart enters the viewport */
+#trend .line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.4s ease;
+}
+
+#trend .area,
+#trend .vlabel,
+#ages .vlabel {
+  transition: opacity .5s ease .7s;
+}
+
+#ages .bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform .8s var(--ease-out);
+}
+
+#ages.horiz .bar {
+  transform-origin: 0 50%;
+}
+
+.pending .line {
+  stroke-dashoffset: 1;
+}
+
+.pending .area,
+.pending .vlabel {
+  opacity: 0;
+}
+
+.pending .bar {
+  transform: scaleY(0);
+}
+
+.pending.horiz .bar {
+  transform: scaleX(0);
+}
+
+/* draggable 2029 projection */
+.drag-hit {
+  fill: transparent;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.shortfall {
+  transition: fill .3s;
+}
+
+/* ==========================================================================
+   9. Chapter 01: pace control
+   ========================================================================== */
+
+.ctrl label {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.ctrl input[type=range] {
+  width: 100%;
+  accent-color: var(--accent);
+  margin: 12px 0 4px;
+}
+
+.scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--faint);
+}
+
+.presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.presets button {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.presets button:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+.readout {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.readout .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+
+.readout .row span:first-child {
+  color: var(--muted);
+}
+
+.readout .row b {
+  font-size: 20px;
+}
+
+.verdict {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background .3s, color .3s;
+}
+
+.verdict.miss {
+  background: rgba(255, 216, 77, .14);
+  color: var(--accent);
+}
+
+.verdict.hit {
+  background: rgba(92, 196, 247, .18);
+  color: var(--sky-soft);
+}
+
+/* ==========================================================================
+   10. Chapter 03: map + ranking
+   ========================================================================== */
+
+.filters {
+  margin-bottom: 14px;
+}
+
+.mapwrap svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.dist {
+  stroke: var(--bg-deep);
+  stroke-width: 1.2;
+  transition: opacity .2s;
+  cursor: pointer;
+}
+
+.dist:focus {
+  outline: none;
+}
+
+.dist.dim {
+  opacity: .18;
+}
+
+.dist-hl {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.legend {
+  display: flex;
+  gap: 2px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.legend div {
+  flex: 1;
+  text-align: center;
+}
+
+.legend i {
+  display: block;
+  height: 8px;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+
+.rank {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 430px;
+  overflow-y: auto;
+}
+
+.rank li {
+  display: grid;
+  grid-template-columns: 1.6em minmax(0, 1fr) 3.4em;
+  gap: 8px;
+  align-items: center;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: opacity .2s, background .15s;
+}
+
+.rank li:hover,
+.rank li.hl {
+  background: rgba(255, 255, 255, .08);
+}
+
+.rank li.dim {
+  opacity: .3;
+}
+
+.rank .bar {
+  display: block;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--sky);
+  margin-top: 3px;
+}
+
+.rank li.over .bar {
+  background: var(--accent);
+}
+
+.rank .v {
+  text-align: right;
+  font-weight: 700;
+}
+
+.rank li.over .v {
+  color: var(--accent);
+}
+
+.rank .i {
+  color: var(--faint);
+  font-size: 13px;
+}
+
+.rank small {
+  color: var(--faint);
+}
+
+/* ==========================================================================
+   11. Chapter 04: gaps
+   ========================================================================== */
+
+.gap-rows {
+  display: grid;
+  gap: 14px;
+}
+
+.gap-row {
+  display: grid;
+  grid-template-columns: minmax(0, 11em) minmax(0, 1fr) 4em;
+  gap: 14px;
+  align-items: center;
+}
+
+.gap-row .lbl {
+  font-size: 16px;
+}
+
+.gap-row .lbl small {
+  display: block;
+  color: var(--faint);
+  font-size: 13px;
+}
+
+.gap-row .v {
+  font-weight: 700;
+  text-align: right;
+  font-size: 18px;
+}
+
+.track {
+  position: relative;
+  height: 26px;
+  background: rgba(255, 255, 255, .07);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.track .avg,
+.gap-key i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--fg);
+  opacity: .75;
+}
+
+.gap-key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--faint);
+  margin: -4px 0 14px;
+}
+
+.gap-key i {
+  position: static;
+  display: block;
+  height: 14px;
+}
+
+.fill {
+  height: 100%;
+  width: 0;
+  background: var(--sky);
+  border-radius: 6px;
+  transition: width .5s var(--ease-out);
+}
+
+.fill.top {
+  background: var(--accent);
+}
+
+.gapnote {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.gapnote .x {
+  font-family: var(--figures);
+  font-size: 60px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: .9;
+}
+
+.gapnote p {
+  color: var(--muted);
+  max-width: 36em;
+}
+
+/* ==========================================================================
+   12. Chapter 05: actions
+   ========================================================================== */
+
+.acts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.act {
+  border-top: 3px solid var(--accent);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.act .stat {
+  font-family: var(--figures);
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: .95;
+  margin-bottom: 10px;
+}
+
+.act .stat small {
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--faint);
+  margin-left: 6px;
+}
+
+.act a {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.act h3 {
+  font-family: var(--body);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.act p {
+  color: var(--muted);
+  margin-top: 6px;
+  font-size: 16px;
+}
+
+.act a {
+  color: var(--sky-soft);
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+/* ==========================================================================
+   13. Footer
+   ========================================================================== */
+
+footer {
+  background: var(--bg-deep);
+  margin-top: 44px;
+  border-top: 3px solid var(--accent);
+}
+
+footer .wrap {
+  padding-block: 28px 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+footer h3 {
+  font-family: var(--body);
+  font-size: 13px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.team {
+  grid-column: 1/-1;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.team-label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.team-names {
+  margin-block: 4px 8px;
+  font-family: var(--display);
+  font-size: clamp(32px, 5vw, 54px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.team-names span {
+  color: var(--fg);
+}
+
+.team-note {
+  font-size: clamp(19px, 2.4vw, 24px);
+  font-weight: 700;
+  color: var(--fg);
+}
+
+/* ==========================================================================
+   14. Responsive
+   ========================================================================== */
+
+@media (max-width: 860px) {
+  .eyebrow {
+    font-size: clamp(17px, 3.6vw, 25px);
+  }
+
+  header .wrap,
+  .grid2,
+  footer .wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .acts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rank {
+    max-height: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .eyebrow {
+    gap: 10px;
+    font-size: 17px;
+    padding: 10px 14px;
+  }
+
+  .facts,
+  .acts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gap-row {
+    grid-template-columns: minmax(0, 1fr) 3.6em;
+  }
+
+  .gap-row .track {
+    grid-column: 1/-1;
+    grid-row: 2;
+  }
+
+  .ch-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ch-head p {
+    grid-column: 1;
+  }
+}
+
+/* ==========================================================================
+   15. Print
+   ========================================================================== */
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .chnav,
+  .tip,
+  .skip,
+  #heroPlay {
+    display: none!important;
+  }
+
+  .pending .line {
+    stroke-dashoffset: 0;
+  }
+
+  .pending .area,
+  .pending .vlabel {
+    opacity: 1;
+  }
+
+  .pending .bar,
+  .pending.horiz .bar {
+    transform: none;
+  }
+
+  .rank {
+    max-height: none;
+  }
+
+  section.ch {
+    break-inside: avoid;
+  }
+}

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Falling Short</title>
+  <meta name="description" content="Interactive infographic on child stunting in Rwanda, built from the Rwanda Demographic and Health Survey 2025.">
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <meta name="theme-color" content="#0a224b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:wght@400;600;700;800&family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/districts.js" defer></script>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ============================ HERO ============================ -->
+<header id="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow"><span>NISR Infographic Competition 2026<br>Rwanda DHS 2025</span></div>
+      <h1>Falling short</h1>
+      <p class="lede">Rwanda has nearly halved child stunting in twenty years. The children still being left behind are <b>toddlers</b>, they live in the <b>North and West</b>, and they are born into the <b>poorest homes</b>.</p>
+      <p class="byline">Team: <b>Solomon Leek</b> &amp; <b>Saad Byiringiro</b></p>
+    </div>
+    <div class="hero-panel" role="group" aria-label="Stunting shown as 100 children">
+      <div class="hero-top">
+        <div class="big num" id="heroNum">27%</div>
+        <div class="big-cap" id="heroCap">of children under five are stunted (too short for their age) in 2025</div>
+      </div>
+      <div class="kids" id="kids" role="img" aria-label="100 children, 27 of them highlighted as stunted"></div>
+      <div class="seg" id="yearSeg" role="group" aria-label="Choose a survey year">
+        <button type="button" data-v="51" data-l="in 2005" aria-pressed="false">2005</button>
+        <button type="button" data-v="38" data-l="in 2014–15" aria-pressed="false">2014–15</button>
+        <button type="button" data-v="27" data-l="in 2025" aria-pressed="true">2025</button>
+        <button type="button" data-v="15" data-l="by 2029 if the NST2 target is met" aria-pressed="false">2029 target</button>
+      </div>
+      <div class="hero-foot">
+        <p class="hint">Each figure is one child in 100. Tap a year to compare.</p>
+        <button type="button" class="pill" id="heroPlay" aria-pressed="false">Play</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ NAV ============================ -->
+<nav class="chnav" aria-label="Chapters">
+  <div class="wrap">
+    <a href="#progress"><span>01</span>Progress</a>
+    <a href="#age"><span>02</span>Age</a>
+    <a href="#where"><span>03</span>Districts</a>
+    <a href="#who"><span>04</span>Who falls short</a>
+    <a href="#act"><span>05</span>What to do</a>
+  </div>
+</nav>
+
+<noscript><p class="wrap noscript">The charts in this infographic need JavaScript. The key figures are in the text.</p></noscript>
+
+<main class="wrap" id="main">
+  <!-- ============================ KEY FINDINGS ============================ -->
+  <div class="facts">
+    <div class="fact"><div class="n num">73%</div><p>of toddlers aged 6–23 months do not get a minimum acceptable diet</p></div>
+    <div class="fact"><div class="n num">21%</div><p>of Rwandans have a basic handwashing facility at home</p></div>
+    <div class="fact"><div class="n num">8%</div><p>of girls aged 15–19 have ever been pregnant, up from 5% in 2019–20</p></div>
+  </div>
+
+  <!-- ============================ 01 PROGRESS ============================ -->
+  <section class="ch" id="progress" aria-labelledby="h-progress">
+    <div class="ch-head">
+      <span class="ch-no">01</span><h2 id="h-progress">Progress, but too slow</h2>
+      <p>Stunting fell from 51% in 2005 to 27% in 2025. Over the last decade it dropped about 1.1 points a year. Reaching the 15% NST2 target by 2029 needs about 3 points a year.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="chart-label">% of children under five who are stunted</div>
+        <div class="scroll"><svg id="trend" viewBox="0 0 650 330" role="group" aria-label="Line chart of stunting from 2000 to 2025 with a projection to 2029"></svg></div>
+        <p class="hint chart-hint">Drag the yellow 2029 dot up or down, or use the slider. The shaded wedge is the gap to the target path.</p>
+      </div>
+      <div class="card ctrl">
+        <label for="pace">Yearly drop from 2025: <span class="num" id="paceOut">1.1</span> points</label>
+        <input type="range" id="pace" min="0" max="4" step="0.05" value="1.1">
+        <div class="scale num" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div>
+        <div class="presets">
+          <button type="button" data-p="1.1">Last decade’s pace</button>
+          <button type="button" data-p="2.95">Pace the target needs</button>
+        </div>
+        <div class="readout">
+          <div class="row"><span>Stunting in 2029</span><b class="num" id="proj">22.4%</b></div>
+          <div class="row"><span>Children under five still stunted per 100</span><b class="num" id="projKids">22</b></div>
+          <div class="row"><span>Year the 15% target is reached</span><b class="num" id="reach">2036</b></div>
+        </div>
+        <div class="verdict miss" id="verdict" aria-live="polite">At this pace Rwanda misses the 15% target by about 7 points.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 02 AGE ============================ -->
+  <section class="ch" id="age" aria-labelledby="h-age">
+    <div class="ch-head">
+      <span class="ch-no">02</span><h2 id="h-age">It peaks before age two</h2>
+      <p>Stunting climbs from 20% at 6–11 months to 33% at 12–23 months, the age when most children are not getting varied, frequent meals. Hover or tap a bar for the sample size.</p>
+    </div>
+    <div class="card">
+      <div class="chart-label">% stunted by child’s age</div>
+      <div class="scroll"><svg id="ages" viewBox="0 0 900 300" role="group" aria-label="Bar chart of stunting by age group"></svg></div>
+    </div>
+  </section>
+
+  <!-- ============================ 03 DISTRICTS ============================ -->
+  <section class="ch" id="where" aria-labelledby="h-where">
+    <div class="ch-head">
+      <span class="ch-no">03</span><h2 id="h-where">Where a child is born matters</h2>
+      <p>11 of 30 districts are above 30%, mostly in the North and West. The lowest is Nyarugenge in Kigali at 8.7%. Hover or tap a district, or filter by province.</p>
+    </div>
+    <div class="tabs filters" id="provSeg" role="group" aria-label="Filter districts by province">
+      <button type="button" class="pill" data-p="all" aria-pressed="true">All provinces</button>
+      <button type="button" class="pill" data-p="over" aria-pressed="false">Above 30% only</button>
+      <button type="button" class="pill" data-p="North" aria-pressed="false">North</button>
+      <button type="button" class="pill" data-p="West" aria-pressed="false">West</button>
+      <button type="button" class="pill" data-p="South" aria-pressed="false">South</button>
+      <button type="button" class="pill" data-p="East" aria-pressed="false">East</button>
+      <button type="button" class="pill" data-p="Kigali" aria-pressed="false">Kigali</button>
+    </div>
+    <div class="grid2">
+      <div class="card mapwrap">
+        <svg id="map" role="group" aria-label="Map of Rwanda's 30 districts shaded by stunting rate"></svg>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="card">
+        <div class="chart-label">Districts ranked, highest first <span class="count" id="rankCount" aria-live="polite"></span></div>
+        <ol class="rank" id="rank"></ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 04 WHO ============================ -->
+  <section class="ch" id="who" aria-labelledby="h-who">
+    <div class="ch-head">
+      <span class="ch-no">04</span><h2 id="h-who">Who falls short</h2>
+      <p>The widest gaps are by mother’s schooling and household wealth. Pick a characteristic to compare groups.</p>
+    </div>
+    <div class="card">
+      <div class="tabs" id="gapTabs" role="tablist" aria-label="Choose a characteristic"></div>
+      <div id="gapPanel" role="tabpanel">
+        <div class="gap-key"><i aria-hidden="true"></i>National average, 26.8%</div>
+        <div class="gap-rows" id="gapRows"></div>
+        <div class="gapnote"><span class="x num" id="gapX">6.5×</span><p id="gapText"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 05 ACT ============================ -->
+  <section class="ch" id="act" aria-labelledby="h-act">
+    <div class="ch-head">
+      <span class="ch-no">05</span><h2 id="h-act">What the numbers point to</h2>
+    </div>
+    <div class="acts">
+      <div class="act"><div class="stat num">73%<small>miss a minimum diet</small></div><h3>Feed the 6–23 month window</h3><p>Varied, frequent meals once breast milk is not enough. 73% of toddlers miss a minimum acceptable diet.</p><a href="#age">See the age chart</a></div>
+      <div class="act"><div class="stat num">11<small>of 30 districts over 30%</small></div><h3>Focus on the North and West</h3><p>Put plans and health workers where stunting is highest: Gicumbi, Burera and Ngororero lead.</p><a href="#where" data-filter="over">See the map</a></div>
+      <div class="act"><div class="stat num">4.3×<small>poorest vs richest</small></div><h3>Reach the poorest fifth</h3><p>Link nutrition with social protection and clean water. Only 21% have a basic handwashing facility.</p><a href="#who" data-gap="Household wealth">See the wealth gap</a></div>
+      <div class="act"><div class="stat num">6.5×<small>no school vs higher</small></div><h3>Keep girls in school</h3><p>A mother’s schooling and her age at birth both track her child’s growth.</p><a href="#who" data-gap="Mother’s education">See the education gap</a></div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer>
+  <div class="wrap">
+    <div class="team">
+      <p class="team-label">Team</p>
+      <p class="team-names">Solomon Leek <span>&amp;</span> Saad Byiringiro</p>
+      <p class="team-note">Own work · all sources acknowledged</p>
+    </div>
+    <div>
+      <h3>Source</h3>
+      <p>NISR, Ministry of Health and ICF (2026). Rwanda Demographic and Health Survey 2025 Final Report: Tables 11.1, 11.4, 11.8–11.9, 5.12, 16.10 and Appendix D.4; Figure 11.1. 2029 target: NST2 (2024–2029), as reported by The New Times. District boundaries: geoBoundaries (CC BY 4.0).</p>
+    </div>
+    <div>
+      <h3>Notes</h3>
+      <p>Stunting means height-for-age below −2 SD of the WHO Child Growth Standards, measured for 7,293 children aged 0–59 months; the national rate is 26.8%, shown as 27%. The 1.1-point yearly pace (2014–15 to 2025), the 2029 projections, the target-year estimate and the gap ratios are our calculations, not NISR estimates. District figures rest on about 150–550 children each, so their margins of error are wider.</p>
+    </div>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -24,7 +24,6 @@
       <div class="eyebrow"><span>NISR Infographic Competition 2026<br>Rwanda DHS 2025</span></div>
       <h1>Falling short</h1>
       <p class="lede">Rwanda has nearly halved child stunting in twenty years. The children still being left behind are <b>toddlers</b>, they live in the <b>North and West</b>, and they are born into the <b>poorest homes</b>.</p>
-      <p class="byline">Team: <b>Solomon Leek</b> &amp; <b>Saad Byiringiro</b></p>
     </div>
     <div class="hero-panel" role="group" aria-label="Stunting shown as 100 children">
       <div class="hero-top">
@@ -62,9 +61,9 @@
 <main class="wrap" id="main">
   <!-- ============================ KEY FINDINGS ============================ -->
   <div class="facts">
-    <div class="fact"><div class="n num">73%</div><p>of toddlers aged 6–23 months do not get a minimum acceptable diet</p></div>
-    <div class="fact"><div class="n num">21%</div><p>of Rwandans have a basic handwashing facility at home</p></div>
-    <div class="fact"><div class="n num">8%</div><p>of girls aged 15–19 have ever been pregnant, up from 5% in 2019–20</p></div>
+    <a class="fact" href="#age"><div class="n num">73%</div><p>of toddlers aged 6–23 months do not get a minimum acceptable diet</p><span class="go">See the age chart</span></a>
+    <a class="fact" href="#who" data-gap="Household wealth"><div class="n num">21%</div><p>of Rwandans have a basic handwashing facility at home</p><span class="go">See the wealth gap</span></a>
+    <a class="fact" href="#who" data-gap="Mother’s age at birth"><div class="n num">8%</div><p>of girls aged 15–19 have ever been pregnant, up from 5% in 2019–20</p><span class="go">See the mother’s age gap</span></a>
   </div>
 
   <!-- ============================ 01 PROGRESS ============================ -->
@@ -113,7 +112,7 @@
   <section class="ch" id="where" aria-labelledby="h-where">
     <div class="ch-head">
       <span class="ch-no">03</span><h2 id="h-where">Where a child is born matters</h2>
-      <p>11 of 30 districts are above 30%, mostly in the North and West. The lowest is Nyarugenge in Kigali at 8.7%. Hover or tap a district, or filter by province.</p>
+      <p>11 of 30 districts are above 30%, mostly in the North and West. The lowest is Nyarugenge in Kigali at 8.7%. Hover or tap a district to pin its profile, search by name, or filter by province.</p>
     </div>
     <div class="tabs filters" id="provSeg" role="group" aria-label="Filter districts by province">
       <button type="button" class="pill" data-p="all" aria-pressed="true">All provinces</button>
@@ -128,6 +127,12 @@
       <div class="card mapwrap">
         <svg id="map" role="group" aria-label="Map of Rwanda's 30 districts shaded by stunting rate"></svg>
         <div class="legend" id="legend"></div>
+        <div class="dfind">
+          <label for="distFind">Find a district</label>
+          <input id="distFind" list="distList" placeholder="Type a name, e.g. Huye" autocomplete="off">
+          <datalist id="distList"></datalist>
+        </div>
+        <div class="dcard" id="dcard" aria-live="polite"></div>
       </div>
       <div class="card">
         <div class="chart-label">Districts ranked, highest first <span class="count" id="rankCount" aria-live="polite"></span></div>
@@ -140,7 +145,7 @@
   <section class="ch" id="who" aria-labelledby="h-who">
     <div class="ch-head">
       <span class="ch-no">04</span><h2 id="h-who">Who falls short</h2>
-      <p>The widest gaps are by mother’s schooling and household wealth. Pick a characteristic to compare groups.</p>
+      <p>The widest gaps are by mother’s schooling and household wealth. Pick a characteristic to compare groups, then press a bar to see its data.</p>
     </div>
     <div class="card">
       <div class="tabs" id="gapTabs" role="tablist" aria-label="Choose a characteristic"></div>

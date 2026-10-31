@@ -268,17 +268,8 @@ h1 {
   color: var(--accent);
 }
 
-.byline {
-  margin-top: 18px;
-  font-size: clamp(19px, 2.2vw, 23px);
-  color: var(--muted);
-}
-
-.byline b {
-  color: var(--accent);
-}
-
 .hero-panel {
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -414,7 +405,26 @@ h1 {
 }
 
 .fact {
-  padding: 4px 0;
+  display: block;
+  padding: 4px 8px;
+  margin-inline: -8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: background .2s;
+}
+
+.fact:hover {
+  background: rgba(255, 255, 255, .06);
+}
+
+.fact .go {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sky-soft);
+  text-decoration: underline;
 }
 
 .fact .n {
@@ -477,7 +487,8 @@ h2 {
 }
 
 .card {
-  background: var(--panel);
+  position: relative;
+  background: rgba(23, 63, 122, .84);  /* --panel, slightly see-through over the background map */
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 20px;
@@ -573,7 +584,7 @@ h2 {
 #trend .line {
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1.4s ease;
+  transition: stroke-dashoffset 1.4s linear;
 }
 
 #trend .area,
@@ -585,7 +596,7 @@ h2 {
 #ages .bar {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  transition: transform .8s var(--ease-out);
+  transition: transform .8s var(--ease-out), opacity .2s;
 }
 
 #ages.horiz .bar {
@@ -607,6 +618,358 @@ h2 {
 
 .pending.horiz .bar {
   transform: scaleX(0);
+}
+
+/* slow reveal while scrolling: JS adds .reveal, then .in once a block is on screen */
+.reveal {
+  opacity: 0;
+  transform: translateY(44px);
+  transition: opacity 1.2s ease var(--rd, 0ms), transform 1.2s var(--ease-out) var(--rd, 0ms);
+}
+
+.reveal.from-above {
+  transform: translateY(-44px);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* trend: glowing head that runs the line, and the ring where it lands */
+.comet {
+  fill: #fff;
+  filter: drop-shadow(0 0 5px var(--accent)) drop-shadow(0 0 14px var(--accent));
+  pointer-events: none;
+}
+
+.comet-label {
+  fill: var(--accent);
+  font-family: var(--data);
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.ring.go {
+  animation: ring-out 1.2s cubic-bezier(.16, 1, .3, 1);
+}
+
+@keyframes ring-out {
+  from {
+    opacity: .95;
+    transform: scale(.7);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(4.2);
+  }
+}
+
+/* headline words rise from behind a mask */
+.w {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: .18em;
+  margin-bottom: -.18em;
+  vertical-align: top;
+}
+
+.w > span {
+  display: inline-block;
+}
+
+.reveal .w > span {
+  transform: translateY(115%);
+  transition: transform 1s cubic-bezier(.16, 1, .3, 1) calc(var(--rd, 0ms) + var(--i, 0) * 90ms + 150ms);
+}
+
+.reveal.from-above .w > span {
+  transform: translateY(-115%);
+}
+
+.reveal.in .w > span {
+  transform: none;
+}
+
+/* cascades: --dd is set per item by JS. Fill mode is backwards only, so filters still control opacity afterwards. */
+.in .kid {
+  animation: pop-in .55s cubic-bezier(.34, 1.56, .64, 1) var(--dd, 0ms) backwards;
+}
+
+.in .dist {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: pop-in .8s cubic-bezier(.16, 1, .3, 1) calc(var(--dd, 0ms) + 250ms) backwards;
+}
+
+.in .rank li {
+  animation: row-in .7s cubic-bezier(.16, 1, .3, 1) calc(var(--dd, 0ms) + 250ms) backwards;
+}
+
+.in .rank .bar {
+  transform-origin: 0 50%;
+  animation: bar-in 1s cubic-bezier(.16, 1, .3, 1) calc(var(--dd, 0ms) + 400ms) backwards;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(.72);
+  }
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+}
+
+@keyframes bar-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* gap bars grow from zero each time the card arrives */
+@media screen {
+  .card.reveal:not(.in) .fill {
+    width: 0 !important;
+  }
+}
+
+.reveal .fill {
+  transition: width 1.1s cubic-bezier(.16, 1, .3, 1) .3s;
+}
+
+.reveal .gap-row:nth-child(2) .fill {
+  transition-delay: .42s;
+}
+
+.reveal .gap-row:nth-child(3) .fill {
+  transition-delay: .54s;
+}
+
+.reveal .gap-row:nth-child(4) .fill {
+  transition-delay: .66s;
+}
+
+.reveal .gap-row:nth-child(5) .fill {
+  transition-delay: .78s;
+}
+
+/* fixed map behind the page */
+.bg-map {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(96vw, 125vh);
+  height: auto;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+  fill: rgba(92, 196, 247, .07);
+  stroke: rgba(92, 196, 247, .3);
+  stroke-width: .8;
+}
+
+.bg-map path {
+  transition: fill .3s;
+}
+
+.bg-map path.hl {
+  fill: rgba(255, 216, 77, .45);
+}
+
+/* soft spotlight following the mouse over cards */
+.card::before,
+.hero-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgba(92, 196, 247, .15), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+
+.card:hover::before,
+.hero-panel:hover::before {
+  opacity: 1;
+}
+
+/* hover feedback */
+button:active {
+  transform: scale(.96);
+}
+
+#ages:hover .bar:not(:hover) {
+  opacity: .5;
+}
+
+#trend circle[tabindex],
+.dist {
+  transition: opacity .2s, r .15s;
+}
+
+#trend circle[tabindex]:hover {
+  r: 10px;
+}
+
+.guide {
+  stroke: var(--fg);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: .6;
+  pointer-events: none;
+}
+
+.gap-row {
+  transition: opacity .2s;
+}
+
+.gap-rows:hover .gap-row:not(:hover):not(.open) {
+  opacity: .55;
+}
+
+/* press a bar: its data slides open underneath */
+.gap-row {
+  cursor: pointer;
+}
+
+.gap-row:hover .track,
+.gap-row.open .track {
+  outline: 1px solid var(--faint);
+}
+
+.gap-detail {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -14px;
+  visibility: hidden;
+  transition: grid-template-rows .35s var(--ease-out), margin-top .35s var(--ease-out), visibility .35s;
+}
+
+.gap-row.open .gap-detail {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  visibility: visible;
+}
+
+.gap-detail > div {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.gap-detail dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(10, 34, 75, .55);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+
+.gap-detail dt {
+  font-size: 13px;
+  color: var(--faint);
+}
+
+.gap-detail dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* district finder + pinned profile */
+.dfind {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 16px;
+}
+
+.dfind label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dfind input {
+  flex: 1;
+  min-width: 170px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--fg);
+  background: rgba(10, 34, 75, .6);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.dfind input::placeholder {
+  color: var(--faint);
+}
+
+.dcard {
+  min-height: 124px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: rgba(10, 34, 75, .55);
+  border-radius: 10px;
+}
+
+.dcard .d-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dcard .d-name {
+  font-size: 20px;
+}
+
+.dcard .d-v {
+  font-family: var(--figures);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.dcard p {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.dcard .track {
+  height: 12px;
+  margin-block: 8px;
+}
+
+.reveal .dcard .fill {
+  transition: width .4s var(--ease-out);
+}
+
+.dcard .d-hint {
+  color: var(--faint);
 }
 
 /* draggable 2029 projection */
@@ -769,6 +1132,7 @@ h2 {
   margin: 0;
   padding: 0;
   max-height: 430px;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -1089,6 +1453,14 @@ footer h3 {
     grid-row: 2;
   }
 
+  .gap-detail {
+    grid-row: 3;
+  }
+
+  .gap-detail dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .ch-head {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1110,6 +1482,7 @@ footer h3 {
 
   .chnav,
   .tip,
+  .bg-map,
   .skip,
   #heroPlay {
     display: none!important;
@@ -1135,5 +1508,13 @@ footer h3 {
 
   section.ch {
     break-inside: avoid;
+  }
+
+  .reveal,
+  .reveal.from-above,
+  .reveal .w > span,
+  .reveal.from-above .w > span {
+    opacity: 1;
+    transform: none;
   }
 }

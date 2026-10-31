@@ -45,16 +45,17 @@ const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
 const reduced = () => motionQuery.matches;
 const smooth = () => reduced() ? "auto" : "smooth";
 
-// Hide a chart's animated parts until it scrolls into view, then let CSS transitions play.
-function reveal(node){
+// Hide a chart's animated parts while it is off screen, so its CSS transitions replay on every return.
+function reveal(node, onShow){
   if (!("IntersectionObserver" in window)) return;
   node.classList.add("pending");
-  const io = new IntersectionObserver(entries => {
-    if (!entries.some(e => e.isIntersecting)) return;
-    io.disconnect();
-    requestAnimationFrame(() => node.classList.remove("pending"));
-  }, {threshold:.2});
-  io.observe(node);
+  new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.intersectionRatio >= .2){
+      if (!node.classList.contains("pending")) return;
+      node.classList.remove("pending");
+      if (onShow) onShow();
+    } else if (!e.isIntersecting) node.classList.add("pending");
+  }), {threshold:[0, .2]}).observe(node);
 }
 
 /* ==========================================================================
@@ -121,7 +122,7 @@ const yearSeg = $("#yearSeg"), yearBtns = $$("button", yearSeg), playBtn = $("#h
 const FIG = '<div class="kid"><svg viewBox="0 0 10 16" aria-hidden="true"><path d="M5 0a2.3 2.3 0 1 1 0 4.6A2.3 2.3 0 0 1 5 0zM2.2 5.4h5.6a1.4 1.4 0 0 1 1.4 1.4v4.1H7.6V16H5.8v-4.6H4.2V16H2.4v-5.1H.8V6.8a1.4 1.4 0 0 1 1.4-1.4z"/></svg></div>';
 kidsBox.innerHTML = FIG.repeat(100);
 const kidEls = [...kidsBox.children];
-let heroAnim = 0, playTimer = null;
+let heroAnim = 0, playTimer = null, introTimer = null;
 
 function setHero(v, label){
   // Stagger only the figures that change, filling forward or emptying backward.
@@ -146,7 +147,7 @@ function selectYear(b){
   setHero(+b.dataset.v, b.dataset.l);
 }
 function stopPlay(){
-  clearTimeout(playTimer); playTimer = null;
+  clearTimeout(playTimer); clearTimeout(introTimer); playTimer = null;
   playBtn.setAttribute("aria-pressed", "false"); playBtn.textContent = "Play";
 }
 function playFrom(i){
@@ -155,6 +156,7 @@ function playFrom(i){
 }
 yearSeg.addEventListener("click", e => { const b = e.target.closest("button"); if (b){ stopPlay(); selectYear(b); } });
 playBtn.addEventListener("click", () => {
+  clearTimeout(introTimer);
   if (playTimer){ stopPlay(); return; }
   playBtn.setAttribute("aria-pressed", "true"); playBtn.textContent = "Stop";
   playFrom(0);
@@ -185,7 +187,7 @@ const shortYear = (y, label, narrow) => narrow && y !== 2000 ? "’" + String(y)
    ========================================================================== */
 const trend = $("#trend"), pace = $("#pace"), paceOut = $("#paceOut"), verdict = $("#verdict");
 const YEARS_LEFT = TARGET_YEAR - BASE_YEAR;
-let paceNow = +pace.value, proj = null;
+let paceNow = +pace.value, proj = null, dragging = false;
 
 function drawTrend(W){
   const narrow = W < 520, H = narrow ? 300 : 330;
@@ -219,20 +221,72 @@ function drawTrend(W){
   const lbl = el("text", {x:tx(TARGET_YEAR) + 8, "text-anchor":"end", class:"num-label", fill:css("--accent"), "font-size":15, "font-weight":700}, trend);
   const hit = el("circle", {cx:tx(TARGET_YEAR), r:22, class:"drag-hit", "aria-hidden":"true"}, trend);
 
-  TREND.forEach(d => {
-    el("text", {x:tx(d[0]), y:ty(d[1]) - 16, "text-anchor":"middle", class:"vlabel"}, trend).textContent = Math.round(d[1]) + "%";
+  const route = trendRoute(tx, ty);
+  TREND.forEach((d, i) => {
+    el("text", {x:tx(d[0]), y:ty(d[1]) - 16, "text-anchor":"middle", class:"vlabel", style:`transition-delay:${Math.round(route.at[i] / route.total * LINE_MS)}ms`}, trend).textContent = Math.round(d[1]) + "%";
     const c = el("circle", {cx:tx(d[0]), cy:ty(d[1]), r:7, fill:css("--bg-deep"), stroke:css("--sky-soft"), "stroke-width":3, tabindex:0, role:"img", "aria-label":`${d[2]}: ${d[1]}% stunted`}, trend);
     bindTip(c, () => `<b>${d[2]}</b><br>${d[1]}% of children under five stunted`);
   });
+  const guide = el("line", {y1:yT, y2:yB, class:"guide", display:"none"}, trend);
+  const ring = el("circle", {cx:tx(TARGET_YEAR), r:8, class:"ring", display:"none"}, trend);
+  const head = el("circle", {r:6, class:"comet", display:"none"}, trend);
+  const headLbl = el("text", {class:"comet-label", "text-anchor":"middle", display:"none"}, trend);
+  ring.addEventListener("animationend", () => { ring.classList.remove("go"); ring.setAttribute("display", "none"); });
   trend.appendChild(hit);
 
-  proj = {tx, ty, H, yB, yT, shade, line, dot, lbl, hit};
+  proj = {tx, ty, W, H, yB, yT, shade, line, dot, lbl, hit, ring, head, headLbl, route, guide};
   bindDrag(hit);
   bindTip(hit, () => `<b>${TARGET_YEAR} at ${paceOut.textContent} points a year</b><br>${fmt(projected(paceNow))}% stunted. Drag to change.`);
   placeProjection();
 }
 
 const projected = p => Math.max(0, NOW - YEARS_LEFT * p);
+
+// The drawn line as measured segments, so the moving head can stay on its tip.
+const LINE_MS = 1400, TAIL_MS = 750;
+function trendRoute(tx, ty){
+  const pts = TREND.map(d => [tx(d[0]), ty(d[1]), d[1]]), at = [0];
+  pts.slice(1).forEach((p, i) => at.push(at[i] + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1])));
+  return {pts, at, total:at[at.length - 1]};
+}
+
+// A glowing head runs the line, carries on down the projection, and rings out where it lands.
+let cometRun = 0;
+function runComet(){
+  if (reduced() || !proj) return;
+  const {tx, ty, ring, head, headLbl, route:{pts, at, total}} = proj, id = ++cometRun, t0 = performance.now();
+  const place = (x, y, v) => {
+    head.setAttribute("cx", x); head.setAttribute("cy", y);
+    headLbl.setAttribute("x", x); headLbl.setAttribute("y", y - 16);
+    headLbl.textContent = fmt(v) + "%";
+  };
+  const hide = () => { head.setAttribute("display", "none"); headLbl.setAttribute("display", "none"); };
+  head.removeAttribute("display"); headLbl.removeAttribute("display");
+  ring.classList.remove("go"); ring.setAttribute("display", "none");
+  const tick = t => {
+    if (id !== cometRun || proj.head !== head) return;
+    if (trend.classList.contains("pending")) return hide();
+    const ms = t - t0;
+    if (ms < LINE_MS){
+      const d = Math.max(0, ms / LINE_MS) * total;
+      let i = at.findIndex((a, k) => k > 0 && d <= a);
+      if (i < 1) i = 1;
+      const f = (d - at[i - 1]) / (at[i] - at[i - 1]), a = pts[i - 1], b = pts[i];
+      place(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f);
+    } else if (ms < LINE_MS + TAIL_MS){
+      const f = 1 - Math.pow(1 - (ms - LINE_MS) / TAIL_MS, 3), v = NOW + (projected(paceNow) - NOW) * f;
+      place(tx(BASE_YEAR) + (tx(TARGET_YEAR) - tx(BASE_YEAR)) * f, ty(v), v);
+    } else {
+      hide();
+      ring.setAttribute("cy", ty(projected(paceNow)));
+      ring.removeAttribute("display");
+      ring.classList.add("go");
+      return;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 
 function placeProjection(){
   if (!proj) return;
@@ -246,7 +300,6 @@ function placeProjection(){
 
 // Drag the 2029 dot vertically; the pace follows, snapped to the slider's 0.05 step.
 function bindDrag(hit){
-  let dragging = false;
   const move = e => {
     const r = trend.getBoundingClientRect(), {H, yB, yT} = proj;
     const v = (yB - (e.clientY - r.top) * H / r.height) * 60 / (yB - yT);
@@ -285,8 +338,38 @@ function setPace(p){
 pace.addEventListener("input", e => setPace(+e.target.value));
 $$(".presets button").forEach(b => b.addEventListener("click", () => setPace(+b.dataset.p)));
 responsive(trend, drawTrend);
+
+// Hovering anywhere on the chart snaps a guide to the nearest year.
+function nearestYear(clientX){
+  const r = trend.getBoundingClientRect(), x = (clientX - r.left) * proj.W / r.width;
+  const stops = TREND.map(d => ({x:proj.tx(d[0]), label:d[2], v:d[1]}));
+  stops.push({x:proj.tx(TARGET_YEAR), label:`${TARGET_YEAR} at this pace`, v:projected(paceNow)});
+  return stops.reduce((a, b) => Math.abs(b.x - x) < Math.abs(a.x - x) ? b : a);
+}
+function showYear(e){
+  const s = nearestYear(e.clientX), gap = s.v - TARGET;
+  showTip(`<b>${s.label}</b><br>${fmt(s.v)}% stunted<br>${fmt(Math.abs(gap))} points ${gap >= 0 ? "above" : "below"} the 15% target`, e.clientX, e.clientY);
+  return s;
+}
+trend.addEventListener("pointermove", e => {
+  if (!proj || dragging || e.pointerType === "touch") return;
+  tipOwner = trend;
+  const s = showYear(e);
+  proj.guide.setAttribute("x1", s.x); proj.guide.setAttribute("x2", s.x);
+  proj.guide.removeAttribute("display");
+});
+trend.addEventListener("pointerleave", e => {
+  if (e.pointerType === "touch" || !proj) return;
+  proj.guide.setAttribute("display", "none");
+  if (tipOwner === trend) hideTip();
+});
+trend.addEventListener("pointerup", e => {
+  if (!proj || dragging || e.pointerType !== "touch") return;
+  tipOwner = trend; tipTouch = true;
+  showYear(e);
+});
 setPace(paceNow);
-reveal(trend);
+reveal(trend, runComet);
 
 /* ==========================================================================
    02 Stunting by age: columns on wide screens, horizontal bars on narrow ones
@@ -352,12 +435,36 @@ map.setAttribute("viewBox", `-4 -4 ${DISTRICTS.W + 8} ${DISTRICTS.H + 8}`);
 const shapeLayer = el("g", {}, map);
 // One outline drawn on top, so highlighting never reorders (and un-focuses) the district paths.
 const outline = el("path", {class:"dist-hl", display:"none", "aria-hidden":"true"}, map);
-let hlName = null;
+let hlName = null, pinned = null;
+
+// Faint fixed map behind the whole page.
+const bgMap = el("svg", {viewBox:`-4 -4 ${DISTRICTS.W + 8} ${DISTRICTS.H + 8}`, class:"bg-map", "aria-hidden":"true"});
+const bgPaths = {};
+DISTRICTS.ds.forEach(d => { bgPaths[d.name] = el("path", {d:d.d}, bgMap); });
+document.body.prepend(bgMap);
+
+const dcard = $("#dcard");
+function showDistrict(d){
+  if (!d){
+    dcard.innerHTML = '<p class="d-hint">Click a district on the map or in the ranking to pin its profile here.</p>';
+    return;
+  }
+  const diff = d.v - NOW;
+  dcard.innerHTML = `<div class="d-top"><div><b class="d-name">${d.name}</b><p>${PROVINCES[d.prov]}</p></div><div class="d-v num">${d.v.toFixed(1)}%</div></div>
+    <div class="track"><div class="fill${d.v > 30 ? " top" : ""}" style="width:${d.v / 50 * 100}%"></div><i class="avg" style="left:${NOW / 50 * 100}%" aria-hidden="true"></i></div>
+    <p>Rank ${byRate.indexOf(d) + 1} of ${byRate.length} · ${Math.abs(diff).toFixed(1)} points ${diff >= 0 ? "above" : "below"} the national ${NOW}% · ${d.n} children measured</p>`;
+}
+function pin(d){
+  pinned = pinned === d ? null : d;
+  highlight(pinned, true);
+}
 
 function highlight(d, scrollList){
-  if (hlName) rows[hlName].classList.remove("hl");
+  if (hlName){ rows[hlName].classList.remove("hl"); bgPaths[hlName].classList.remove("hl"); }
   hlName = d ? d.name : null;
+  showDistrict(d);
   if (!d){ outline.setAttribute("display", "none"); return; }
+  bgPaths[d.name].classList.add("hl");
   outline.setAttribute("d", d.d);
   outline.removeAttribute("display");
   const li = rows[d.name];
@@ -379,12 +486,26 @@ byRate.forEach((d, i) => {
   shapes[d.name] = p; rows[d.name] = li;
 
   bindTip(p, () => `<b>${d.name}</b> · ${PROVINCES[d.prov]}<br>${d.v}% of children stunted<br>${d.n} children measured`);
-  const off = () => { if (hlName === d.name) highlight(null); };
+  const off = () => { if (hlName === d.name) highlight(pinned); };
   p.addEventListener("pointerenter", () => highlight(d, true));
   p.addEventListener("focus", () => highlight(d, true));
   li.addEventListener("pointerenter", () => highlight(d, false));
   li.addEventListener("focus", () => highlight(d, false));
-  [p, li].forEach(n => { n.addEventListener("pointerleave", off); n.addEventListener("blur", off); });
+  [p, li].forEach(n => {
+    n.addEventListener("pointerleave", off); n.addEventListener("blur", off);
+    n.addEventListener("click", () => pin(d));
+    n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); pin(d); } });
+  });
+});
+
+showDistrict(null);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && pinned) pin(pinned); });
+
+const distFind = $("#distFind");
+$("#distList").innerHTML = byRate.map(d => `<option value="${d.name}">`).join("");
+distFind.addEventListener("input", () => {
+  const d = byRate.find(x => x.name.toLowerCase() === distFind.value.trim().toLowerCase());
+  if (d && d !== pinned){ setFilter("all"); pin(d); }
 });
 
 function setFilter(f){
@@ -432,6 +553,29 @@ function setGap(k){
   gapRows.innerHTML = g.rows.map(r =>
     `<div class="gap-row"><div class="lbl">${r[0]}<small class="num">${r[2].toLocaleString()} children</small></div><div class="track"><div class="fill${r[1] === mx ? " top" : ""}" data-w="${r[1] / 50 * 100}"></div><i class="avg" style="left:${NOW / 50 * 100}%" aria-hidden="true"></i></div><div class="v num">${r[1].toFixed(1)}%</div></div>`
   ).join("");
+  $$(".gap-row", gapRows).forEach((row, i) => {
+    const r = g.rows[i], diff = r[1] - NOW, say = `${Math.abs(diff).toFixed(1)} points ${diff >= 0 ? "above" : "below"} the national ${NOW}%`;
+    row.tabIndex = 0;
+    row.setAttribute("role", "button");
+    row.setAttribute("aria-expanded", "false");
+    row.setAttribute("aria-label", `${r[0]}: ${r[1]}% stunted, ${say}`);
+    row.insertAdjacentHTML("beforeend", `<div class="gap-detail"><div><dl>
+      <div><dt>Stunted</dt><dd class="num">${r[1].toFixed(1)}%</dd></div>
+      <div><dt>Against the national ${NOW}%</dt><dd class="num">${diff >= 0 ? "+" : "−"}${Math.abs(diff).toFixed(1)} points</dd></div>
+      <div><dt>Children measured</dt><dd class="num">${r[2].toLocaleString()}</dd></div>
+      <div><dt>Estimated stunted</dt><dd class="num">about ${Math.round(r[2] * r[1] / 100).toLocaleString()}</dd></div>
+    </dl></div></div>`);
+    const toggle = () => {
+      const open = !row.classList.contains("open");
+      $$(".gap-row", gapRows).forEach(x => { x.classList.remove("open"); x.setAttribute("aria-expanded", "false"); });
+      row.classList.toggle("open", open);
+      row.setAttribute("aria-expanded", open);
+      hideTip();
+    };
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(); } });
+    bindTip(row, () => `<b>${r[0]}</b><br>${r[1]}% stunted<br>${say}<br>${r[2].toLocaleString()} children measured<br>Press for full data`);
+  });
   // Two frames so the bars start at 0 and the width transition plays.
   requestAnimationFrame(() => requestAnimationFrame(() => $$(".fill", gapRows).forEach(f => { f.style.width = f.dataset.w + "%"; })));
   $("#gapX").textContent = (mx / mn).toFixed(1) + "×";
@@ -442,7 +586,84 @@ setGap(Object.keys(GAPS)[0]);
 /* ==========================================================================
    05 Action links jump to the matching view
    ========================================================================== */
-$$(".act a[data-gap]").forEach(a => a.addEventListener("click", () => setGap(a.dataset.gap)));
+$$("a[data-gap]").forEach(a => a.addEventListener("click", () => setGap(a.dataset.gap)));
 $$(".act a[data-filter]").forEach(a => a.addEventListener("click", () => setFilter(a.dataset.filter)));
+
+/* ==========================================================================
+   Card spotlight follows the mouse
+   ========================================================================== */
+document.addEventListener("pointermove", e => {
+  if (e.pointerType !== "mouse" || !(e.target instanceof Element)) return;
+  const card = e.target.closest(".card, .hero-panel");
+  if (!card) return;
+  const r = card.getBoundingClientRect();
+  card.style.setProperty("--mx", e.clientX - r.left + "px");
+  card.style.setProperty("--my", e.clientY - r.top + "px");
+}, {passive:true});
+
+/* ==========================================================================
+   Slow reveal while scrolling, in both directions
+   ========================================================================== */
+if ("IntersectionObserver" in window && !reduced()){
+  // Opening: the hero replays twenty years of progress, then settles on 2025.
+  const step = i => {
+    selectYear(yearBtns[i]);
+    if (i < 2) introTimer = setTimeout(() => step(i + 1), 1500);
+  };
+  heroNum.textContent = yearBtns[0].dataset.v + "%";
+  selectYear(yearBtns[0]);
+  introTimer = setTimeout(() => step(1), 2100);
+
+  const blocks = $$("header .wrap > div, .fact, .ch-head, .ch .card, .filters, .act, .team, footer .wrap > div:not(.team)");
+
+  // Headlines: each word rises from behind a mask.
+  $$("h1, h2").forEach(h => {
+    h.innerHTML = h.textContent.trim().split(/\s+/).map((w, i) => `<span class="w"><span style="--i:${i}">${w}</span></span>`).join(" ");
+  });
+
+  // Hero, map and ranking cascade; the map lights up worst district first.
+  kidEls.forEach((k, i) => k.style.setProperty("--dd", i * 11 + "ms"));
+  byRate.forEach((d, i) => {
+    shapes[d.name].style.setProperty("--dd", i * 34 + "ms");
+    rows[d.name].style.setProperty("--dd", i * 34 + "ms");
+  });
+
+  blocks.forEach(b => {
+    b.classList.add("reveal");
+    b.style.setProperty("--rd", Math.min([...b.parentElement.children].indexOf(b), 3) * 140 + "ms");
+  });
+
+  // Key figures count up from zero each time their block arrives.
+  const counters = new Map();
+  $$(".fact .n, .act .stat").forEach(n => {
+    const node = n.firstChild, [, num, suffix] = node.data.match(/^([\d.]+)(.*)$/);
+    counters.set(n.closest(".reveal"), {node, to:+num, dec:(num.split(".")[1] || "").length, suffix, text:node.data});
+  });
+  function countUp(block, c){
+    const t0 = performance.now();
+    const tick = t => {
+      const p = Math.min(1, (t - t0) / 1500);
+      if (p < 1 && block.classList.contains("in")){
+        c.node.data = (c.to * (1 - Math.pow(1 - p, 4))).toFixed(c.dec) + c.suffix;
+        requestAnimationFrame(tick);
+      } else c.node.data = c.text;
+    };
+    requestAnimationFrame(tick);
+  }
+
+  const seen = new IntersectionObserver(entries => entries.forEach(e => {
+    const b = e.target;
+    if (e.intersectionRatio >= .12){
+      if (b.classList.contains("in")) return;
+      b.classList.add("in");
+      if (counters.has(b)) countUp(b, counters.get(b));
+    } else if (!e.isIntersecting){
+      // Reset off screen, ready to ease in from whichever side it left by.
+      b.classList.remove("in");
+      b.classList.toggle("from-above", e.boundingClientRect.top < 0);
+    }
+  }), {threshold:[0, .12]});
+  blocks.forEach(b => seen.observe(b));
+}
 
 })();

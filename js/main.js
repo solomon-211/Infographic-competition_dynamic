@@ -207,7 +207,7 @@ function drawTrend(W){
 
   // Target as a reference across the whole chart, so the distance to it is visible every year.
   el("line", {x1:x0, x2:x1, y1:ty(TARGET), y2:ty(TARGET), stroke:css("--accent"), "stroke-width":1.5, "stroke-dasharray":"2 4", opacity:.8}, trend);
-  el("text", {x:x0 + 6, y:ty(TARGET) - 7, fill:css("--accent"), "font-size":13, "font-weight":700}, trend).textContent = "15% NST2 target";
+  el("text", {x:x0 + 6, y:ty(TARGET) - 7, fill:css("--accent"), "font-size":14, "font-weight":700}, trend).textContent = "15% NST2 target";
 
   el("path", {d:`M${pts}L${tx(BASE_YEAR)} ${ty(0)}L${tx(2000)} ${ty(0)}Z`, class:"area", fill:css("--sky-soft"), "fill-opacity":.16}, trend);
   el("path", {d:"M" + pts, class:"line", pathLength:1, fill:"none", stroke:css("--sky-soft"), "stroke-width":4, "stroke-linejoin":"round"}, trend);
@@ -234,7 +234,7 @@ function drawTrend(W){
   ring.addEventListener("animationend", () => { ring.classList.remove("go"); ring.setAttribute("display", "none"); });
   trend.appendChild(hit);
 
-  proj = {tx, ty, W, H, yB, yT, shade, line, dot, lbl, hit, ring, head, headLbl, route, guide};
+  proj = {tx, ty, W, H, narrow, yB, yT, shade, line, dot, lbl, hit, ring, head, headLbl, route, guide};
   bindDrag(hit);
   bindTip(hit, () => `<b>${TARGET_YEAR} at ${paceOut.textContent} points a year</b><br>${fmt(projected(paceNow))}% stunted. Drag to change.`);
   placeProjection();
@@ -290,9 +290,9 @@ function runComet(){
 
 function placeProjection(){
   if (!proj) return;
-  const {tx, ty, shade, line, dot, lbl, hit} = proj, v = projected(paceNow), y = ty(v);
+  const {tx, ty, narrow, shade, line, dot, lbl, hit} = proj, v = projected(paceNow), y = ty(v);
   line.setAttribute("y2", y); dot.setAttribute("cy", y); hit.setAttribute("cy", y);
-  lbl.setAttribute("y", v > TARGET ? y - 14 : y + 24);
+  lbl.setAttribute("y", v > TARGET && !narrow ? y - 14 : y + 24);
   lbl.textContent = `≈${fmt(v)}%`;
   shade.setAttribute("d", `M${tx(BASE_YEAR)} ${ty(NOW)}L${tx(TARGET_YEAR)} ${y}L${tx(TARGET_YEAR)} ${ty(TARGET)}Z`);
   shade.setAttribute("fill", v > TARGET ? "rgba(255,216,77,.2)" : "rgba(92,196,247,.22)");
@@ -417,7 +417,7 @@ function drawAges(W){
   const yEnd = top + AGES.length * rowH;
   refLine({x1:L + sx(NOW), x2:L + sx(NOW), y1:top + 2, y2:yEnd + 2});
   el("text", {x:L + sx(NOW), y:yEnd + 18, "text-anchor":"middle", class:"ref-label"}, ages).textContent = `National ${NOW}%`;
-  el("text", {x:0, y:H - 4, fill:css("--accent"), "font-size":13, "font-weight":700}, ages).textContent = "Yellow: 6–23 months, the steepest rise";
+  el("text", {x:0, y:H - 4, fill:css("--accent"), "font-size":14, "font-weight":700}, ages).textContent = "Yellow: 6–23 months, the steepest rise";
 }
 responsive(ages, drawAges);
 reveal(ages);

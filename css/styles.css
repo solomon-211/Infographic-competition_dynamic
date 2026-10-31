@@ -33,8 +33,8 @@
 
   /* Text */
   --fg: #ffffff;
-  --muted: #c9dbf2;
-  --faint: #8fb0dc;
+  --muted: #e3edfa;
+  --faint: #c3d6f0;
 
   /* Accents */
   --accent: #ffd84d;
@@ -141,7 +141,7 @@ svg text {
 }
 
 .hint {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--faint);
 }
 
@@ -184,12 +184,12 @@ svg text {
 
 .pill {
   padding: 7px 14px;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .seg button {
   padding: 6px 13px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .pill:hover,
@@ -293,7 +293,7 @@ h1 {
 
 .big-cap {
   color: var(--muted);
-  font-size: 17px;
+  font-size: 18px;
   max-width: 16em;
 }
 
@@ -316,7 +316,7 @@ h1 {
 }
 
 .kid path {
-  fill: #5677ad;
+  fill: #6f92c8;
   transition: fill .35s ease var(--d, 0ms);
 }
 
@@ -365,7 +365,7 @@ h1 {
   color: var(--muted);
   text-decoration: none;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
   padding: 7px 14px;
   border-radius: 999px;
   border: 1px solid transparent;
@@ -421,7 +421,7 @@ h1 {
 .fact .go {
   display: inline-block;
   margin-top: 6px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--sky-soft);
   text-decoration: underline;
@@ -438,7 +438,7 @@ h1 {
 .fact p {
   color: var(--muted);
   margin-top: 6px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 /* ==========================================================================
@@ -475,7 +475,7 @@ h2 {
 .ch-head p {
   grid-column: 2;
   color: var(--muted);
-  font-size: 18px;
+  font-size: 19px;
   max-width: 46em;
 }
 
@@ -488,14 +488,14 @@ h2 {
 
 .card {
   position: relative;
-  background: rgba(23, 63, 122, .84);  /* --panel, slightly see-through over the background map */
+  background: rgba(23, 63, 122, .68);  /* --panel, see-through so the watermark shows */
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 20px;
 }
 
 .chart-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -527,7 +527,7 @@ h2 {
 }
 
 .axis.sm {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .vlabel {
@@ -545,7 +545,7 @@ h2 {
 
 .ref-label {
   fill: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -563,7 +563,7 @@ h2 {
   color: var(--bg-deep);
   padding: 8px 11px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.35;
   box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
   z-index: 20;
@@ -770,7 +770,7 @@ h2 {
   transition-delay: .78s;
 }
 
-/* fixed map behind the page */
+/* Rwanda watermark: one flat silhouette fixed behind the page. Stroke matches fill to close the seams between districts. */
 .bg-map {
   position: fixed;
   left: 50%;
@@ -780,9 +780,9 @@ h2 {
   transform: translate(-50%, -50%);
   z-index: -1;
   pointer-events: none;
-  fill: rgba(92, 196, 247, .07);
-  stroke: rgba(92, 196, 247, .3);
-  stroke-width: .8;
+  fill: #1f4787;
+  stroke: #1f4787;
+  stroke-width: 1.2;
 }
 
 .bg-map path {
@@ -790,7 +790,8 @@ h2 {
 }
 
 .bg-map path.hl {
-  fill: rgba(255, 216, 77, .45);
+  fill: #6d6f4f;
+  stroke: #6d6f4f;
 }
 
 /* soft spotlight following the mouse over cards */
@@ -887,7 +888,7 @@ button:active {
 }
 
 .gap-detail dt {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--faint);
 }
 
@@ -907,7 +908,7 @@ button:active {
 }
 
 .dfind label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -916,7 +917,7 @@ button:active {
   min-width: 170px;
   padding: 8px 12px;
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--fg);
   background: rgba(10, 34, 75, .6);
   border: 1px solid var(--line);
@@ -955,7 +956,7 @@ button:active {
 }
 
 .dcard p {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--muted);
 }
 
@@ -1002,7 +1003,7 @@ button:active {
 .scale {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--faint);
 }
 
@@ -1018,7 +1019,7 @@ button:active {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 5px 10px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--muted);
 }
 
@@ -1055,7 +1056,7 @@ button:active {
   padding: 12px 14px;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 17px;
   transition: background .3s, color .3s;
 }
 
@@ -1110,7 +1111,7 @@ button:active {
   display: flex;
   gap: 2px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--faint);
 }
 
@@ -1144,7 +1145,7 @@ button:active {
   padding: 6px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 16px;
   transition: opacity .2s, background .15s;
 }
 
@@ -1180,10 +1181,11 @@ button:active {
 
 .rank .i {
   color: var(--faint);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .rank small {
+  font-size: 14px;
   color: var(--faint);
 }
 
@@ -1204,13 +1206,13 @@ button:active {
 }
 
 .gap-row .lbl {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .gap-row .lbl small {
   display: block;
   color: var(--faint);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .gap-row .v {
@@ -1242,7 +1244,7 @@ button:active {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--faint);
   margin: -4px 0 14px;
 }
@@ -1336,12 +1338,12 @@ button:active {
 .act p {
   color: var(--muted);
   margin-top: 6px;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .act a {
   color: var(--sky-soft);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   display: inline-block;
   margin-top: 8px;
@@ -1362,13 +1364,13 @@ footer .wrap {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--muted);
 }
 
 footer h3 {
   font-family: var(--body);
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--accent);
@@ -1382,7 +1384,7 @@ footer h3 {
 }
 
 .team-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
